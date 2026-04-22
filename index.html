@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BREAKINGNEWS24 — Live Updates</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d0d;
+      color: #e8e8e8;
+      font-family: 'Georgia', serif;
+    }
+
+    /* ── TOP BAR ── */
+    #topbar {
+      background: #cc0000;
+      color: #fff;
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1px;
+      padding: 4px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    #ticker-wrap {
+      flex: 1;
+      overflow: hidden;
+      margin: 0 20px;
+      white-space: nowrap;
+    }
+    #ticker {
+      display: inline-block;
+      animation: ticker 22s linear infinite;
+      color: #ffff00;
+    }
+    @keyframes ticker {
+      from { transform: translateX(100vw); }
+      to   { transform: translateX(-100%); }
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: #111;
+      border-bottom: 4px solid #cc0000;
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-size: 38px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      color: #fff;
+      text-transform: uppercase;
+    }
+    .logo span { color: #cc0000; }
+    .live-badge {
+      background: #cc0000;
+      color: #fff;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 10px;
+      border-radius: 3px;
+      animation: blink 1s step-start infinite;
+    }
+    @keyframes blink { 50% { opacity: 0; } }
+    .date { font-size: 12px; color: #999; }
+
+    /* ── NAV ── */
+    nav {
+      background: #1a1a1a;
+      border-bottom: 1px solid #333;
+      padding: 8px 20px;
+      display: flex;
+      gap: 24px;
+      font-size: 13px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    nav a { color: #ccc; text-decoration: none; }
+    nav a:hover { color: #cc0000; }
+
+    /* ── LAYOUT ── */
+    main {
+      max-width: 1100px;
+      margin: 24px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      border: 1px solid #2a2a2a;
+      overflow: hidden;
+    }
+    .hero-img {
+      width: 100%;
+      height: 340px;
+      object-fit: cover;
+      filter: grayscale(60%) brightness(0.7);
+      display: block;
+    }
+    .hero-body { padding: 18px; }
+    .category-tag {
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: #cc0000;
+      margin-bottom: 8px;
+    }
+    .hero h1 {
+      font-size: 28px;
+      line-height: 1.25;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    .hero p { font-size: 14px; color: #aaa; line-height: 1.7; }
+    .byline { font-size: 11px; color: #666; margin-top: 10px; }
+
+    /* ── SIDE ARTICLES ── */
+    .side-col { display: flex; flex-direction: column; gap: 16px; }
+    .card {
+      border: 1px solid #2a2a2a;
+      padding: 14px;
+      background: #141414;
+    }
+    .card .category-tag { margin-bottom: 6px; }
+    .card h2 { font-size: 15px; color: #e0e0e0; line-height: 1.4; margin-bottom: 6px; }
+    .card p { font-size: 12px; color: #888; line-height: 1.6; }
+
+    /* ── BOTTOM GRID ── */
+    .bottom-grid {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      border-top: 2px solid #cc0000;
+      padding-top: 20px;
+    }
+    .mini-card { background: #141414; border: 1px solid #2a2a2a; padding: 14px; }
+    .mini-card h3 { font-size: 14px; color: #ddd; line-height: 1.4; margin-bottom: 6px; }
+    .mini-card p { font-size: 12px; color: #777; }
+
+    /* ── COUNTDOWN ── */
+    #countdown-bar {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: 4px;
+      background: #cc0000;
+      transform-origin: left;
+      animation: shrink 5s linear forwards;
+    }
+    @keyframes shrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+    /* ═══════════════════════════════
+       JUMPSCARE OVERLAY
+    ═══════════════════════════════ */
+    #jumpscare {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: #000;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+    #jumpscare.active { display: flex; }
+
+    #scary-face {
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      position: absolute;
+      inset: 0;
+      animation: facePulse 0.08s steps(1) infinite;
+    }
+
+    #flash-overlay {
+      position: absolute;
+      inset: 0;
+      animation: flashColors 0.07s steps(1) infinite;
+      mix-blend-mode: screen;
+      pointer-events: none;
+    }
+
+    #scare-text {
+      position: absolute;
+      font-size: clamp(40px, 10vw, 120px);
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      color: #fff;
+      text-shadow:
+        0 0 20px #ff0000,
+        0 0 40px #ff0000,
+        0 0 80px #ff0000,
+        4px 4px 0 #000;
+      animation: textShake 0.05s steps(1) infinite, textPulse 0.15s ease-in-out infinite alternate;
+      z-index: 2;
+      text-align: center;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes facePulse {
+      0%   { transform: scale(1)    rotate(0deg); filter: brightness(1) contrast(1.5) saturate(0); }
+      10%  { transform: scale(1.08) rotate(-1deg); filter: brightness(2) contrast(3) saturate(2) hue-rotate(0deg); }
+      20%  { transform: scale(0.97) rotate(1deg);  filter: brightness(0.5) contrast(4) saturate(0) invert(1); }
+      30%  { transform: scale(1.12) rotate(-2deg); filter: brightness(3) contrast(2) saturate(3) hue-rotate(180deg); }
+      40%  { transform: scale(1)    rotate(2deg);  filter: brightness(1) contrast(5) saturate(0); }
+      50%  { transform: scale(1.15) rotate(-1deg); filter: brightness(2) contrast(2) saturate(2) invert(0.5); }
+      60%  { transform: scale(0.95) rotate(3deg);  filter: brightness(0.3) contrast(6) saturate(0); }
+      70%  { transform: scale(1.1)  rotate(-3deg); filter: brightness(4) contrast(3) saturate(4) hue-rotate(90deg); }
+      80%  { transform: scale(1.05) rotate(1deg);  filter: brightness(1) contrast(1) saturate(0) invert(1); }
+      100% { transform: scale(1.2)  rotate(-2deg); filter: brightness(5) contrast(4) saturate(5); }
+    }
+
+    @keyframes flashColors {
+      0%   { background: rgba(255,0,0,0.6); }
+      10%  { background: rgba(255,255,255,0.9); }
+      20%  { background: rgba(0,0,0,0.8); }
+      30%  { background: rgba(255,0,0,0.7); }
+      40%  { background: rgba(255,255,0,0.5); }
+      50%  { background: rgba(255,255,255,1); }
+      60%  { background: rgba(255,0,0,0.9); }
+      70%  { background: rgba(0,0,0,1); }
+      80%  { background: rgba(255,0,255,0.6); }
+      90%  { background: rgba(255,255,255,0.8); }
+      100% { background: rgba(255,0,0,0.5); }
+    }
+
+    @keyframes textShake {
+      0%   { transform: translate(-6px, -4px) rotate(-2deg); }
+      10%  { transform: translate(8px, 6px)  rotate(3deg); }
+      20%  { transform: translate(-10px, 2px) rotate(-4deg); }
+      30%  { transform: translate(6px, -8px) rotate(2deg); }
+      40%  { transform: translate(-4px, 10px) rotate(-3deg); }
+      50%  { transform: translate(12px, -2px) rotate(4deg); }
+      60%  { transform: translate(-8px, 6px) rotate(-1deg); }
+      70%  { transform: translate(4px, -10px) rotate(3deg); }
+      80%  { transform: translate(-12px, 4px) rotate(-4deg); }
+      100% { transform: translate(6px, 8px)  rotate(2deg); }
+    }
+
+    @keyframes textPulse {
+      from { opacity: 1; font-size: clamp(40px, 10vw, 120px); }
+      to   { opacity: 0.7; font-size: clamp(50px, 12vw, 140px); }
+    }
+
+    /* body shake during scare */
+    @keyframes bodyShake {
+      0%   { transform: translate(0, 0); }
+      10%  { transform: translate(-8px, 4px); }
+      20%  { transform: translate(8px, -6px); }
+      30%  { transform: translate(-12px, 8px); }
+      40%  { transform: translate(10px, -4px); }
+      50%  { transform: translate(-6px, 10px); }
+      60%  { transform: translate(14px, -8px); }
+      70%  { transform: translate(-10px, 6px); }
+      80%  { transform: translate(8px, -10px); }
+      90%  { transform: translate(-14px, 4px); }
+      100% { transform: translate(6px, -6px); }
+    }
+    body.shaking { animation: bodyShake 0.05s steps(1) infinite; }
+  </style>
+</head>
+<body>
+
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <span>&#9632; BREAKING NEWS</span>
+    <div id="ticker-wrap">
+      <span id="ticker">
+        MULTIPLE VICTIMS FOUND IN SUBURBAN HOMES &nbsp;&#8226;&nbsp;
+        SERIAL KILLER STILL AT LARGE — DO NOT GO OUTSIDE ALONE &nbsp;&#8226;&nbsp;
+        AUTHORITIES WARN: SUSPECT MAY BE IN YOUR NEIGHBORHOOD &nbsp;&#8226;&nbsp;
+        MASS DISAPPEARANCES REPORTED ACROSS SEVEN COUNTIES &nbsp;&#8226;&nbsp;
+        EMERGENCY ALERT: STAY INDOORS, LOCK DOORS AND WINDOWS &nbsp;&#8226;&nbsp;
+        UNIDENTIFIED BODIES DISCOVERED NEAR LOCAL SCHOOLS &nbsp;&#8226;&nbsp;
+        POLICE SCANNER GOES SILENT — OFFICERS MISSING &nbsp;&#8226;&nbsp;
+      </span>
+    </div>
+    <span id="live-time"></span>
+  </div>
+
+  <!-- HEADER -->
+  <header>
+    <div class="logo">Breaking<span>News</span>24</div>
+    <div style="text-align:center">
+      <div class="live-badge">&#9679; LIVE</div>
+      <div class="date" id="header-date"></div>
+    </div>
+    <div style="font-size:12px;color:#666;text-align:right">
+      NATIONAL EMERGENCY BROADCAST<br>
+      <span style="color:#cc0000;font-weight:bold">THREAT LEVEL: CRITICAL</span>
+    </div>
+  </header>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#">Home</a>
+    <a href="#">Crime</a>
+    <a href="#">National</a>
+    <a href="#">Missing Persons</a>
+    <a href="#">Alerts</a>
+    <a href="#">Video</a>
+    <a href="#">Contact</a>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main>
+
+    <!-- HERO -->
+    <article class="hero">
+      <!-- Dark city SVG stand-in so no external img needed -->
+      <svg class="hero-img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" preserveAspectRatio="xMidYMid slice">
+        <rect width="800" height="340" fill="#0a0a0a"/>
+        <!-- moon -->
+        <circle cx="680" cy="60" r="40" fill="#1a1a1a" stroke="#333" stroke-width="1"/>
+        <circle cx="695" cy="52" r="34" fill="#0a0a0a"/>
+        <!-- buildings -->
+        <rect x="0"   y="180" width="60"  height="160" fill="#111"/>
+        <rect x="30"  y="140" width="40"  height="200" fill="#0d0d0d"/>
+        <rect x="65"  y="160" width="55"  height="180" fill="#121212"/>
+        <rect x="100" y="120" width="30"  height="220" fill="#0f0f0f"/>
+        <rect x="125" y="150" width="70"  height="190" fill="#111"/>
+        <rect x="180" y="100" width="50"  height="240" fill="#0d0d0d"/>
+        <rect x="220" y="130" width="60"  height="210" fill="#121212"/>
+        <rect x="270" y="90"  width="40"  height="250" fill="#111"/>
+        <rect x="300" y="160" width="80"  height="180" fill="#0f0f0f"/>
+        <rect x="370" y="110" width="55"  height="230" fill="#0d0d0d"/>
+        <rect x="415" y="140" width="45"  height="200" fill="#121212"/>
+        <rect x="450" y="80"  width="65"  height="260" fill="#111"/>
+        <rect x="510" y="130" width="50"  height="210" fill="#0f0f0f"/>
+        <rect x="550" y="160" width="70"  height="180" fill="#0d0d0d"/>
+        <rect x="610" y="100" width="40"  height="240" fill="#121212"/>
+        <rect x="640" y="150" width="60"  height="190" fill="#111"/>
+        <rect x="690" y="120" width="55"  height="220" fill="#0f0f0f"/>
+        <rect x="735" y="90"  width="65"  height="250" fill="#0d0d0d"/>
+        <!-- windows (some lit red) -->
+        <rect x="35" y="150" width="8" height="10" fill="#cc0000" opacity="0.8"/>
+        <rect x="105" y="130" width="8" height="10" fill="#cc000066"/>
+        <rect x="190" y="115" width="8" height="10" fill="#cc0000" opacity="0.9"/>
+        <rect x="280" y="105" width="8" height="10" fill="#cc000044"/>
+        <rect x="460" y="95"  width="8" height="10" fill="#cc0000" opacity="0.7"/>
+        <rect x="520" y="145" width="8" height="10" fill="#cc0000" opacity="0.5"/>
+        <rect x="650" y="160" width="8" height="10" fill="#cc0000" opacity="0.8"/>
+        <!-- ground fog -->
+        <ellipse cx="400" cy="340" rx="600" ry="60" fill="#0a0a0a" opacity="0.9"/>
+        <!-- red glow on ground -->
+        <ellipse cx="200" cy="300" rx="150" ry="30" fill="#cc000033"/>
+        <ellipse cx="600" cy="290" rx="120" ry="25" fill="#cc000022"/>
+        <!-- caution tape lines -->
+        <line x1="0" y1="310" x2="800" y2="310" stroke="#cc0000" stroke-width="2" stroke-dasharray="20,10" opacity="0.4"/>
+      </svg>
+      <div class="hero-body">
+        <div class="category-tag">&#9888; URGENT — BREAKING</div>
+        <h1>SERIAL KILLER ON THE LOOSE: POLICE CONFIRM 7 VICTIMS IN 48 HOURS — SUSPECT STILL NOT FOUND</h1>
+        <p>
+          Authorities issued a rare Level 5 emergency alert late Tuesday after confirming the seventh victim
+          was discovered near a residential neighborhood. Officials urge all residents to remain indoors,
+          barricade entrances, and avoid contact with strangers. The suspect is described as highly dangerous.
+          "We have never seen anything like this," said Chief Morrison at a press conference, visibly shaken.
+          "This individual is unlike any suspect we have ever encountered."
+        </p>
+        <div class="byline">By Staff Reporter &nbsp;&#8226;&nbsp; April 22, 2026, 12:03 AM &nbsp;&#8226;&nbsp; <span style="color:#cc0000">UPDATED 3 MIN AGO</span></div>
+      </div>
+    </article>
+
+    <!-- SIDEBAR -->
+    <aside class="side-col">
+      <div class="card">
+        <div class="category-tag">&#9888; MISSING PERSONS</div>
+        <h2>14 RESIDENTS VANISH FROM QUIET CUL-DE-SAC — NO SIGNS OF STRUGGLE</h2>
+        <p>Neighbors report hearing nothing. Doors left open, food still on plates. Investigators baffled.</p>
+      </div>
+      <div class="card">
+        <div class="category-tag">&#9888; NATIONAL ALERT</div>
+        <h2>EMERGENCY BROADCAST SYSTEM HACKED — UNKNOWN VOICE HEARD ON ALL CHANNELS</h2>
+        <p>The message, lasting 11 seconds, contained only heavy breathing before the signal was cut.</p>
+      </div>
+      <div class="card">
+        <div class="category-tag">&#9888; LAW ENFORCEMENT</div>
+        <h2>THREE OFFICERS FOUND UNCONSCIOUS — PATROL CARS ABANDONED ON HIGHWAY</h2>
+        <p>K-9 units refused to approach the scene. No explanation has been provided by authorities.</p>
+      </div>
+      <div class="card">
+        <div class="category-tag">&#9888; LOCAL</div>
+        <h2>RESIDENTS REPORT SHADOWY FIGURE WATCHING HOMES FROM TREELINE AT NIGHT</h2>
+        <p>Security footage reviewed by police showed no identifiable figure — yet scratches appeared on windows by morning.</p>
+      </div>
+    </aside>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+      <div class="mini-card">
+        <h3>MORTUARY OVERWHELMED: BODIES ARRIVING FASTER THAN THEY CAN BE IDENTIFIED</h3>
+        <p style="color:#cc0000;font-size:11px;margin-bottom:6px;">&#9679; LIVE UPDATE</p>
+        <p>State officials have requested federal assistance as the death toll continues to rise.</p>
+      </div>
+      <div class="mini-card">
+        <h3>CHILDREN REPORT "THE MAN WITH NO FACE" STANDING OUTSIDE SCHOOL WINDOWS</h3>
+        <p style="color:#cc0000;font-size:11px;margin-bottom:6px;">&#9679; DEVELOPING</p>
+        <p>School placed on lockdown. Parents warned not to approach the perimeter after dark.</p>
+      </div>
+      <div class="mini-card">
+        <h3>POWER OUTAGES HIT SEVEN NEIGHBORHOODS — UTILITY WORKERS REFUSE TO ENTER AREA</h3>
+        <p style="color:#cc0000;font-size:11px;margin-bottom:6px;">&#9679; LIVE UPDATE</p>
+        <p>Workers cited "unexplained sounds" and "extreme cold" in the substation tunnels.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Countdown bar -->
+  <div id="countdown-bar"></div>
+
+  <!-- ═══ JUMPSCARE OVERLAY ═══ -->
+  <div id="jumpscare">
+    <img id="scary-face" src="Screenshot_20260422_005350_Chrome.jpg" alt="" />
+    <div id="flash-overlay"></div>
+    <div id="scare-text">GET OUT!!!</div>
+  </div>
+
+  <audio id="scare-audio" src="final_60108db6919bc200b087a3a2_239343.mp3" preload="auto"></audio>
+
+  <script>
+    /* live clock */
+    function updateClock() {
+      const now = new Date();
+      const t = now.toLocaleTimeString('en-US', { hour12: false });
+      document.getElementById('live-time').textContent = t;
+      document.getElementById('header-date').textContent =
+        now.toLocaleDateString('en-US', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    /* jumpscare trigger */
+    setTimeout(() => {
+      const overlay = document.getElementById('jumpscare');
+      const audio   = document.getElementById('scare-audio');
+
+      /* try to unlock & blast audio */
+      audio.volume = 1.0;
+      audio.currentTime = 0;
+      audio.play().catch(() => {});
+
+      overlay.classList.add('active');
+      document.body.classList.add('shaking');
+
+      /* cycle the scare text */
+      const msgs = [
+        'GET OUT!!!', 'HE\'S BEHIND YOU', 'YOU\'RE NEXT',
+        'RUN!!!', 'HE FOUND YOU', '😱 LOOK OUT!!!',
+        'DON\'T LOOK BACK', 'IT\'S TOO LATE'
+      ];
+      let mi = 0;
+      const txt = document.getElementById('scare-text');
+      setInterval(() => { txt.textContent = msgs[++mi % msgs.length]; }, 300);
+
+      /* flash the entire viewport with the page title bar too */
+      let flashOn = false;
+      setInterval(() => {
+        flashOn = !flashOn;
+        document.title = flashOn ? '💀 GET OUT 💀' : '⚠️ WARNING ⚠️';
+      }, 120);
+
+    }, 5000);
+  </script>
+</body>
+</html>
