@@ -444,22 +444,32 @@
     updateClock();
     setInterval(updateClock, 1000);
 
+    /* unlock AudioContext on first user interaction — required by browsers */
+    const audio = document.getElementById('scare-audio');
+    let audioCtx = null;
+
+    function unlockAudio() {
+      if (audioCtx) return;
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioCtx.createMediaElementSource(audio);
+        const gain   = audioCtx.createGain();
+        gain.gain.value = 4.0;
+        source.connect(gain);
+        gain.connect(audioCtx.destination);
+        audioCtx.resume();
+      } catch (e) {}
+    }
+
+    ['click','mousemove','keydown','touchstart','scroll'].forEach(ev =>
+      document.addEventListener(ev, unlockAudio, { once: true })
+    );
+
     /* jumpscare trigger */
     setTimeout(() => {
       const overlay = document.getElementById('jumpscare');
-      const audio   = document.getElementById('scare-audio');
 
-      /* Web Audio API gain boost — 4x louder than max HTML volume */
-      try {
-        const ctx     = new (window.AudioContext || window.webkitAudioContext)();
-        const source  = ctx.createMediaElementSource(audio);
-        const gain    = ctx.createGain();
-        gain.gain.value = 4.0;
-        source.connect(gain);
-        gain.connect(ctx.destination);
-        ctx.resume();
-      } catch (e) {}
-
+      if (audioCtx) audioCtx.resume();
       audio.volume = 1.0;
       audio.currentTime = 0;
       audio.play().catch(() => {});
