@@ -449,7 +449,17 @@
       const overlay = document.getElementById('jumpscare');
       const audio   = document.getElementById('scare-audio');
 
-      /* try to unlock & blast audio */
+      /* Web Audio API gain boost — 4x louder than max HTML volume */
+      try {
+        const ctx     = new (window.AudioContext || window.webkitAudioContext)();
+        const source  = ctx.createMediaElementSource(audio);
+        const gain    = ctx.createGain();
+        gain.gain.value = 4.0;
+        source.connect(gain);
+        gain.connect(ctx.destination);
+        ctx.resume();
+      } catch (e) {}
+
       audio.volume = 1.0;
       audio.currentTime = 0;
       audio.play().catch(() => {});
